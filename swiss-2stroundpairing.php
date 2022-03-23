@@ -156,14 +156,14 @@ if($do_initial_pairing){
 	
 	$results_array=explode( "<li><input type='checkbox' name='selected_names[]' value='", $end_result );$chars_to_grab=17;
 	$count_names = count($results_array);
-	$half=round($lines/2);
+	$half=round($lines/2 ,0, PHP_ROUND_HALF_UP);
 
 	for ($i=1 ;$i<$half;$i++){
 		//echo $results_array[$i]."-----".$results_array[$half+$i];
 
 		///echo substr($results_array[$i], 0, $chars_to_grab)." -Vs- ".substr($results_array[$i+$half], 0, $chars_to_grab) ."<hr>";// ok
 		echo "<li> ($i) ".substr($results_array[$i], 0, $chars_to_grab)
-		." -Vs- (".($i+$half).") "
+		." -Vs- (".($i-1+$half).") "
 		.substr($results_array[$i+$half], 0, $chars_to_grab) ."<hr>";
 
 	}
