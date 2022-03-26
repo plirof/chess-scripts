@@ -46,10 +46,10 @@ $birth_result=$age_array[0][0];
 
 if($return_u_category){
 	$cur_year=date("Y");
-	if( ($cur_year-$birth_result)==16 || ($cur_year-$birth_result)==15)  $birth_result="U16-".$birth_result;
-	if( ($cur_year-$birth_result)==13 || ($cur_year-$birth_result)==14)  $birth_result="U14-".$birth_result;
-	if( ($cur_year-$birth_result)==11 || ($cur_year-$birth_result)==12)  $birth_result="U12-".$birth_result;
-	if( ($cur_year-$birth_result)==10 || ($cur_year-$birth_result)==9)  $birth_result="U10-".$birth_result;
+	if( ($cur_year-$birth_result)==16 || ($cur_year-$birth_result)==15)  return "U16-".$birth_result;
+	if( ($cur_year-$birth_result)==13 || ($cur_year-$birth_result)==14)  return "U14-".$birth_result;
+	if( ($cur_year-$birth_result)==11 || ($cur_year-$birth_result)==12)  return "U12-".$birth_result;
+	if( ($cur_year-$birth_result)==10 || ($cur_year-$birth_result)==9)  return "U10-".$birth_result;
 echo "<BR>UUUUUUUUUUUU $cur_year , $birth_result";
 
 }
