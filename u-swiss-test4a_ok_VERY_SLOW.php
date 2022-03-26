@@ -180,7 +180,8 @@ foreach ( $txt2 as $string ) {
             //$end_result.=$string."<BR>\n";
             $end_result.="<li>";
             $end_result.="<input type='checkbox' name='selected_names[]' value='$name' />";
-            if($do_get_age) { $name=@cr_get_age($string)."-".$name; if($debug) echo "<hr>AGE+name=$name"; }; //^^^ Might need to put Ucategory to end
+            if($do_get_age) { $name=cr_get_age($string,true)."-".$name; //if($debug) echo "<hr>AGE+name=$name"; 
+            }; //^^^ Might need to put Ucategory to end
             $end_result.="<b>".$name."--<a target=_blank href='https://ratings.fide.com/profile/".$fide_id."'>".$fide_id."|</a></b>--"
             //$newstring = substr_replace($haystack, $replace, strpos($haystack, $needle), strlen($needle));
             // $newstring = substr_replace($name, "%2C", strpos($name, ' '), strlen(' '));//https://stackoverflow.com/questions/1252693/using-str-replace-so-that-it-only-acts-on-the-first-match
