@@ -160,7 +160,7 @@ if ($do_get_age){
 @$txt = \Soundasleep\Html2Text::convert($txt); // STrip HTML tags
 //echo $txt;
 
-echo"<h2>TXT=<BR>".print_r($txt)."</h2>";
+//echo"<h2>TXT=<BR>".print_r($txt)."</h2>";
 
 //Split text per line
 $txt2= explode("\n",$txt) ;

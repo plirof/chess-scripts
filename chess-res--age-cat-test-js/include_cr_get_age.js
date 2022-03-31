@@ -14,7 +14,7 @@ https://stackoverflow.com/questions/46881154/get-html-file-from-href-and-load-it
 var elem;
 var html;
 
-
+//grab web page and display age +agegroup
 function cr_get_age($cr_url,$return_u_category=false){
 console.log ("INSIDE JS cr_get_age");
 // const do_get_age=true
@@ -90,26 +90,49 @@ function make_table(myarray) {
 //w.document.write(table); 
 }
 
+
+
+
+//grab web page and display age +agegroup
+function cr_get_one_age(cr_url,thissnr,return_u_category=false){
+console.log("======================cr_get_one_age  cr_url="+cr_url+ "  ,  \nthissnr="+thissnr);
+ if (!do_get_age)console.log ("NOT do_get_age");
+
+cr_query="https://chess-results.com/"+cr_url;
+console.log("cr_query ="+cr_query);
+
+
+}
+
+
+
 function process_link_array(link_array) {
 	//https://towardsdatascience.com/quickly-extract-all-links-from-a-web-page-using-javascript-and-the-browser-console-49bb6f48127b
-    var table = '';
+   
+   var table = '';
    for (var i=0; i<link_array.length; i++) {
    			line=link_array[i];
-   			if (link_array[i].includes('tnr'))     {
-
+   			if (line.includes('tnr'))     {
+          line_splitted=line.split(')'); 
+          //console.log("process_link_array -- line_splitted = \n"+line_splitted[0]+" \n"+line_splitted[1]+" \n"+line_splitted[2]);
    				//if (line.match(/snr=([^]]*)\)/s)) {table += "snr_match! "; //grabs only 1 digit snr}
    				if (line.match(/snr=([^]*)\)/s)) { 
    				mysnr=line.split('snr=').pop().split(')')[0];
-   				table += "___snr_===! "+mysnr+"  ___ ";
+   				
+          //table += '\n'+ link_array[i];//ok
+          table += '\n'+ line_splitted[0];//ok
+          table += "___snr_===! "+mysnr+"  ___ ";
+          cr_get_one_age(line_splitted[0],mysnr);
+
    				}
 
 
-   			        table += '\n'+ link_array[i];
+   			        
    			    
    			 }       
     };
  	console.log("==================================================================================inside make_table link-array.length="+link_array.length);
- 	console.log(table);
+ 	//console.log(table);
 
 
 //console.log(link_array);
@@ -123,7 +146,7 @@ function process_link_array(link_array) {
 
 function grabAges(){
 //global elem,html;
-elem = document.querySelector('wholebody');
+//elem = document.querySelector('wholebody');
 elem = document.body;
 // Get HTML content
 html = elem.textContent;
@@ -133,10 +156,11 @@ html = elem.textContent;
 
 
 
-//console.log("hello "+ html);
+console.log("hello "+ html);
 
 //link_array=html.split('](tnr'); 
-link_array=html.split(']('); 
+link_array=html.split(']('); //ok works
+//link_array=html.split('<li>'); 
 process_link_array(link_array)
 
 /*
