@@ -1,13 +1,25 @@
 <?php //print_r($_REQUEST);
+/*
+Changes
+-220403- extra button in case we don't have full age update
+-220402- grab age JS+php proxy
 
+
+*/
+error_reporting( error_reporting() & ~E_NOTICE ); // evil
  ?>
  <html><head><script src="include_cr_get_age47.js"></script>
-  <script type="text/javascript" > const do_get_age=true; </script>
+  <script type="text/javascript" >
+  const do_get_age=true;
+  age_table= new Array();
+  //age_table[0]="0";
+</script>
  </head>
  <body>
 <form action="" method="POST" >    
 <input type="submit" value="SelectCheckedNames">
-            
+<HR><input type="button" class="createlink" value="Update Ages" onclick="updateAges(age_table);"   >
+
 
 <?php
 /*
@@ -206,7 +218,7 @@ foreach ( $txt2 as $string ) {
             $name2=$name;
             //$name_no_spaces=str_replace(' ', '', $name);
             $div_name="age".$snr;
-            if($do_get_age) { 
+            if($do_get_age || $snr>0) { 
               $name2="<div id='".$div_name."'  name='".$div_name."'></div> ".$name; //if($debug) echo "<hr>AGE+name=$name";
             }; //^^^ Might need to put Ucategory to end
             $end_result.="<b>".$name2."--<a target=_blank href='https://ratings.fide.com/profile/".$fide_id."'>".$fide_id."|</a></b>--"
