@@ -3,6 +3,7 @@
 Chess-results -filter categories & get PGNs
 
 Changes
+-220405 v49b -JS swiss initial pairing, Removed PHP swiss dependencies
 -220403- extra button in case we don't have full age update
 -220402- grab age JS+php proxy
 -220322-TEST age phillipeion
@@ -65,7 +66,6 @@ PageAge :  <td class="CR">1977</td></tr></table>
 //error_reporting(E_ERROR | E_PARSE);
 // Filter line containing text :
 $keywords_pattern='#\b(u12|u99|etc)\b#i';
-$do_initial_pairing=true;
 $do_get_age=true; //set it to false
 
 $temp_keywords_pattern='';
@@ -73,8 +73,6 @@ $debug=true;
 $production_show=true;
 
 //echo "<h5>Execution time ".microtime(true)." </h5>";
-
-///include "pair_fuctions.php"; //need  Swiss class
 
 //$url = "https://graph.facebook.com/19165649929?fields=name";
 //example :http://localhost/img/cr05.php?url=https://chess-results.com/tnr609201.aspx?lan=1&art=1&rd=7
@@ -99,15 +97,6 @@ if (@$_REQUEST["selected_names"]!="") {
  }
 
 
-if (@$_REQUEST["initialpairing"]!="") {
-
-    //$url="https://chess-results.com/tnr609201.aspx?lan=1&art=1&rd=7";
-    $do_initial_pairing=true;
-  }
-   else {
-   	$do_initial_pairing=false;
-    
- }
 
 if (@$_REQUEST["getage"]!="") {
 
@@ -252,58 +241,6 @@ foreach ( $txt2 as $string ) {
 }
 if ($production_show) echo $end_result;
 
-$chars_to_grab=17;//This for testing is redifined below
-if($do_initial_pairing){
-	$contains_title=false;
-        if(strpos($end_result,"Name")!==false) $contains_title=true;
-        echo "</ol><h2>INITIAL PAIRS</h2><ol>";
-	
-	///$results_array=explode( "\n", $end_result );$chars_to_grab=40;//ok
-	
-	$results_array=explode( "<li><input type='checkbox' name='selected_names[]' value='", $end_result );$chars_to_grab=17;
-	
-//if($debug)print_r($results_array);
-if($contains_title){
-//if ($debug) echo "<h1>aaaaaaaaaa".$results_array[90]." </h1>";
-
-do {
-$removed_line1=array_shift($results_array);
-
-    if ($debug) echo "<h3> SHIFTttttttt $removed_line1--".$results_array[0]."</h3>" ;
-
-} while (strpos($results_array[0],"Name")===false);
-//if ($debug) echo "<h1>aaaaaaaaaa".$results_array[90]." </h1>";
-
-do {
-$last_line=array_pop($results_array);
-
-    if ($debug) echo "<h3> POPttttttt ".$last_line."</h3>" ;
-} while (strpos($last_line,"Chess-Tournament")===false);
-
-//echo "<h1>aaaaaaaaaa".$results_array[90]." </h1>";
-if($debug)print_r($results_array);
-
-}// end of IF $contains_title
-$lines=substr_count( $end_result, "\n" );
-        $count_names = count($results_array);
-        $lines=$count_names;// quickfix for line number
-	//$half=round($lines/2 ,0, PHP_ROUND_HALF_UP);
-$half=round($lines/2 ,0, PHP_ROUND_HALF_DOWN);
-
-	for ($i=1 ;$i<$half;$i++){
-		//echo $results_array[$i]."-----".$results_array[$half+$i];
-
-		///echo substr($results_array[$i], 0, $chars_to_grab)." -Vs- ".substr($results_array[$i+$half], 0, $chars_to_grab) ."<hr>";// ok
-		echo "<li> ($i) ".substr($results_array[$i], 0, $chars_to_grab)
-		." -Vs- (".($i-1+$half).") "
-		.substr($results_array[$i+$half], 0, $chars_to_grab) ."<hr>";
-
-	}
-	if ($debug) echo "<h1>count_names=$count_names  ,lines=$lines  , half:".($count_names/2)." -".round($lines/2)."</h1>";
-	//if ($debug) print_r($results_array);
-
-
-}
 
 ?>
 <input type="submit" value="SelectCheckedNames"  >
