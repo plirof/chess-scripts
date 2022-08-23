@@ -3,23 +3,17 @@
 Chess-results -filter categories & get PGNs
 
 Changes
--220501 v51a - Swiss try 2 - problem with split
--220405 v50b -220406- grabage moved to JS part (still used php proxy)
--220405 v49b -JS swiss initial pairing, Removed PHP swiss dependencies
--220403- extra button in case we don't have full age update
--220402- grab age JS+php proxy
--220322-TEST age phillipeion
--220314- TEST edit phillipeion
--220322 : v006 - added initial pairing predict (checkbox)
--220320 : v005 - added filter by name
--220310 : v004 - added chessbase
--220308 : v003 - 
+-220820 - Find Weekend - Hide old tournaments
+-220819 - Initial version
 
 
 */
 error_reporting( error_reporting() & ~E_NOTICE ); // evil
  ?>
- <html><head><script src="include_cr_get_location_date51.js"></script>
+ <html><head>
+<!--
+  <script src="include_cr_get_location_date51.js"></script>
+-->
   <script type="text/javascript" >
   const do_get_age=false;
   age_table= new Array();
@@ -29,41 +23,32 @@ error_reporting( error_reporting() & ~E_NOTICE ); // evil
 </script>
  </head>
  <body>
-<form action="" method="POST" >    
+<form action="" method="POST" > 
+<input type="text" value="BUL" name=country>   
+<!--
+
+<input type="submit" value="SelectCheckedNames">   
 <input type="submit" value="SelectCheckedNames">
+
 <HR><input type="button" class="createlink" value="Get Ages" onclick="grabAges(age_table);"   >
 <HR><input type="button" class="createlink" value="Update Ages" onclick="updateAges(age_table);"   >
 <HR><input type="button" class="createlink" value="Count Age Categories" onclick="countCategories(age_table);"   >
+-->
 <?php
 /*
 
 
+
 //print_r($_REQUEST);
-
-//+++++++++++++Extract LINKS to detail from Whole Page++++++++++
-\s*(?i)href\s*=\s*(\"([^"]*\")|'[^']*'|([^'">\s]+))
-\s*(?i)href\s*=\s*(\"(tnr)([^"]*\")|'[^']*'|([^'">\s]+))
-
-https://github.com/xRuiAlves/fide-ratings-scraper/blob/master/src/parser.js
-https://code.tutsplus.com/tutorials/search-and-replace-with-regular-expressions-in-php--cms-36690
-
-
-//+++++++++++++EXTRACT AGE from detail page++++++++++++++
-agelink-- <a Class="CRdb" href="  AND ?lan=
-
-https://regex101.com/r/p1Ubqv/1/
-
-/(?s)(?<=\<td class=\"CR\"\>)\d{4}(?=\<\/td\><\/tr\><\/table\>)/g
-/(?s)(?<=\<td class=\"CR\"\>)[1-2]\d{3}(?=\<\/td\><\/tr\><\/table\>)/g
-
-PageAge :  <td class="CR">1977</td></tr></table>
-<td class="CR">####</td></tr></table>
-
 
 
 
 <form action="return_request.php" >
 */
+
+$array_wanted_cities=["Sofia","СОФИЯ","Добринище","Dobrinishte","ЯКОРУДА","Yakoruda"];
+$array_wanted_cities=[ 303,       303,        232,          232,      250,      250];
+
 
 
 //error_reporting(E_ERROR | E_PARSE);
@@ -74,21 +59,33 @@ $do_get_age=false; //set it to false
 $temp_keywords_pattern='';
 $debug=true;
 $production_show=true;
-
+include 'Html2Text.php';
 //echo "<h5>Execution time ".microtime(true)." </h5>";
 
-//$url = "https://graph.facebook.com/19165649929?fields=name";
-//example :http://localhost/img/cr05.php?url=https://chess-results.com/tnr609201.aspx?lan=1&art=1&rd=7
-// URL of chess-results to fetch
+
+if (@$_REQUEST["country"]!="") {
+
+    //$url="https://chess-results.com/tnr609201.aspx?lan=1&art=1&rd=7";
+    $country=$_REQUEST["country"];
+  }
+   else {
+    
+    $country = "BUL";
+ }
+
 if (@$_REQUEST["url"]!="") {
 
     //$url="https://chess-results.com/tnr609201.aspx?lan=1&art=1&rd=7";
     $url=$_REQUEST["url"];
   }
    else {
-    echo "url ok<HR size=10>";
-    $url = "https://chess-results.com/fed.aspx?lan=1&fed=BUL";
+    //echo "url ok<HR size=10>";
+    $url = "https://chess-results.com/fed.aspx?lan=1&fed=".$country;
  }
+
+
+
+
 
 //Check if filter is given
 if (@$_REQUEST["selected_names"]!="") {
@@ -107,12 +104,18 @@ if (@$_REQUEST["selected_names"]!="") {
 
 //Check if filter is given
 if (@$_REQUEST["filter"]!="") {
-    if(strlen($temp_keywords_pattern)>2){ echo'strlen($temp_keywords_pattern)>2'; $temp_keywords_pattern="|".$temp_keywords_pattern; }//add a | in case we have both filters
+   // if(strlen($temp_keywords_pattern)>2){ echo'strlen($temp_keywords_pattern)>2'; $temp_keywords_pattern="|".$temp_keywords_pattern; }//add a | in case we have both filters
     $temp_keywords_pattern=''.$_REQUEST["filter"].''.$temp_keywords_pattern;
   }
    else {
     //$temp_keywords_pattern='(u12|u99|etc)';
  }
+
+
+//Checks if date is a weekend (if >=5 checks for friday also)
+function isWeekend($date) {
+    return (date('N', strtotime($date)) >= 6);
+}
 
 
 
@@ -125,6 +128,94 @@ return $output_birth;
 
 }
 
+function extract_text($str,$start_text,$end_text){
+  $regular='/'.$start_text.'(.*?)'.$end_text.'/';
+  if (preg_match($regular, $str, $match) == 1) {
+  //if (preg_match('/Arbiter(.*?)Pairing/', $str, $match) == 1) {
+
+    //echo $match[1];
+    return $match[1];
+  }
+
+}
+
+function extract_next_text($data,$start_text,$length=10){
+   $part = substr($data, strpos($data, $start_text)+strlen($start_text),$length);
+   return $part;
+ 
+}
+
+
+
+function checkIfFutureDate($given_date){
+//echo "dat(Y/mm/dd):".date("Y/m/d") ." given date=$given_date";
+if( $given_date > date("Y/m/d") ) {
+    // today's date is before 20140505 (May 5, 2014)
+    return true;
+}
+
+$time1  = strtotime(date("Y/mm/dd", $given_date));
+  if(time() > $time1)
+   {
+//     echo "too early!".$time1."  given_date=$given_date";
+  //   return true;
+   } 
+return false;
+}
+
+
+
+function array_search_partial($keyword,$arr) {
+    foreach($arr as $index => $string) {
+        if (strpos($string, $keyword) !== FALSE)
+            return $index;
+    }
+}
+
+function fetch_tournament_data($tour_url="http://localhost"){
+  $tourdata=["NOT FOUND","--","---"];
+//if (preg_match('/before-(.*?)-after/', $str, $match) == 1) {
+//    echo $match[1];
+//}
+
+//  /*  #####################################
+$ch = curl_init($tour_url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_BINARYTRANSFER, true);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+//curl_setopt($ch, CURLOPT_HTTPHEADER, array('Host: graph.facebook.com'));
+$output = curl_exec($ch);
+curl_close($ch); 
+$mytext=$output;
+//@$mytext = \Soundasleep\Html2Text::convert($output);
+if (preg_match('/Arbiter(.*?)Pairing/', $mytext, $match) == 1) {
+
+    //echo $match[1];
+    $tourdata=$match[1];
+   // $date=extract_text($match[1],$start_text,$end_text);
+    @$plaintext = \Soundasleep\Html2Text::convert($tourdata);
+    //echo '<BR>ZZZZZZZZZZZZZZZZZZZZ'.$plaintext;
+
+    $array=explode("\n", $plaintext);
+    //var_dump($array);
+
+    $date=extract_next_text($plaintext,"Date",13);
+    $location=extract_next_text($plaintext,"Location",13);
+    $timecontrol=extract_next_text($plaintext,"Time",13);
+
+    $location=$array[array_search_partial("Location", $array)]; $location=substr($location,9 );//$location=substr($location,9 ,40);
+    $date=$array[array_search_partial('Date', $array)]; $date=substr($date,5 ,25);
+    $timecontrol=$array[array_search_partial("Time", $array)]; $timecontrol=substr($timecontrol,12 ,20);
+
+    //$tourdata=["<HR>aaaaaaaaaa DATE = ".$date." , |||==Location = ".$location." ,||||==Time Control ".$timecontrol."  aaaaaaaa ||||<br>","".$match[1]."","||||cccccccCCCc<HR>\n"];//TEST;
+
+    $tourdata=[$date,$location,$timecontrol];
+}
+
+// */   ################################
+
+return $tourdata;
+}
 
 if(strlen($temp_keywords_pattern)<3)  { echo'strlen($temp_keywords_pattern)<3 '."<h2>$temp_keywords_pattern</h2>"; $temp_keywords_pattern='(|u12|u99|etc)'; };
 
@@ -156,7 +247,7 @@ $result[0]="";
 $mytext=$result;
 echo "<hr size=5>";
 #if ($debug)echo $mytext;
-include 'Html2Text.php';
+//include 'Html2Text.php';
 //$mytext=$_REQUEST["text_entered"] ;// get TinyMCE html
 $txt="";
 //$txt = "<h2>$file_name</h2>\n";
@@ -175,6 +266,7 @@ $txt2= explode("\n",$txt) ;
 //print_r($txt2);
 $end_result="<ol>";
 $exectime=0;
+echo "<table border=1>";
 foreach ( $txt2 as $string ) {
   //echo "<BR> HELLO:".$string;
  //foreach ($keywords as $keyword) {
@@ -202,25 +294,43 @@ foreach ( $txt2 as $string ) {
             $tnr=str_replace("tnr","",$tnr_array[0]);
             //if($debug)echo "<hr>SNR===== $snr ,TNR= $tnr <hr>";
             $link = 'https://chess-results.com/tnr'.$tnr.'.aspx?lan=1&turdet=YES';
-            //if($debug) echo "<hr> <a href=".$link." > ".$link."</a>";
+            //if($debug) echo "<hr> <a href=".$link." target='_blank' > ".$link."</a>";
+
+            $end_result.="<tr><td><li id='tnr$tnr-snr$snr'>";
+
+           // ******  CALL fetch function for individual here
+            $tour_url="https://chess-results.com/tnr663707.aspx?lan=1&turdet=YES";
+            $tour_url=$link;
+            $tourdata=fetch_tournament_data($tour_url);
+            
+            $date_only=substr($tourdata[0], 0,10); 
+             
+          //  if($debug) echo "<h5>$date_only isWeekend:".isWeekend($date_only)." checkIfFutureDate($date_only):".checkIfFutureDate($date_only)."</h5>";
+
+
+            if (!checkIfFutureDate($date_only)) {$end_result.='<FONT COLOR=red>OLD - </FONT></TD></tr>';CONTINUE;}
+            if (isWeekend($date_only)) $end_result.='<FONT COLOR=GREEN>WEEKEND- </FONT>';
+            $end_result.=''.$tourdata[1].'</td><td>'.$tourdata[0].'</td><td>'.$tourdata[2].'</td>'; // 0:date, 1:location,2:time control
+
 
             //$name_comma_space = substr_replace($name, "%2C", strpos($name, ' '), strlen(' '));
             //$name_comma_space = substr_replace($name_comma_space, "%20", strrpos($name, ' '), strlen(' '));
-            $fide_id=$matches[0][1];
+            //$fide_id=$matches[0][1];
             //$end_result.=$string."<BR>\n";
-            $end_result.="<li id='tnr$tnr-snr$snr'>";
-            $end_result.="<input type='checkbox' name='selected_names[]' id='player' value='$name' />";
+            
+            $end_result.="<td><input type='checkbox' name='selected_names[]' id='player' value='$name' />";
             //if($do_get_age) { $name=cr_get_age($string,true)."-".$name; //if($debug) echo "<hr>AGE+name=$name";  @@@@ PHP ok slow
             $name2=$name;
 
-            $end_result.="<b><a target=_blank href='$link'>".$name2."|</a></b>--"
+            $end_result.="<b><a target=_blank href='$link'>".$name2."|</a></b>--";
             //$newstring = substr_replace($haystack, $replace, strpos($haystack, $needle), strlen($needle));
             // $newstring = substr_replace($name, "%2C", strpos($name, ' '), strlen(' '));//https://stackoverflow.com/questions/1252693/using-str-replace-so-that-it-only-acts-on-the-first-match
-         
 
-            //."<a href=https://www.chessbites.com/Games.aspx?player=".$name_comma_space." target=_blank >2.chessbites.com-Games.aspx</a> "
 
-            ."--".$string."<BR>\n";
+
+
+
+            $end_result.="</td></tr>";
 
 
         } 
@@ -229,22 +339,23 @@ foreach ( $txt2 as $string ) {
 if ($production_show) echo $end_result;
 
 
-?>
+?><br>
+<!--
 <input type="submit" value="SelectCheckedNames"  >
-<!--</form>
+</form>
 <hr>
-<form action="" method="post"> -->
+<form action="" method="post"> 
 url: <input type="text" name="url"><br>
 filter (values seperated by | ): <input type="text" name="filter" value="|u12|u99|etc" ><br>
 Show/Get ages : <input type='checkbox' name='getage' value='YES-getage' /><BR>  
-
+-->
 <input type="submit">
 <?php echo "Last URL= $url <BR> Last Filter =$keywords_pattern  "; ?>
 </form>
 <?php 
 //selected_names%5B%5D=Mamedov+Edgar&selected_names%5B%5D=Korelskiy+Egor&url=http%3A%2F%2Fchess-results.com%2Ftnr615897.aspx%3Flan%3D1%26flag%3D30%26turdet%3DYES&filter=u12%7Cu99%7Cetc
 //a$="selected_names[]=" ;
-echo "Last FILTER : <a href=? > </a>URL= $url <BR> Last Filter =$keywords_pattern  "; 
+//echo "Last FILTER : <a href=? > </a>URL= $url <BR> Last Filter =$keywords_pattern  "; 
 
 if ($debug) {echo "<hr size=10>";print_r($_REQUEST);};
 
